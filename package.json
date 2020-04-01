@@ -1,0 +1,22 @@
+{
+  "name": "chaincode-assessment",
+  "version": "1.0.0",
+  "description": "Thank you for applying to Chaincode and congratulations for making it to our coding challenge.",
+  "main": "index.js",
+  "dependencies": {
+    "papaparse": "^5.1.1",
+    "regenerator-runtime": "^0.13.3"
+  },
+  "devDependencies": {
+    "@babel/cli": "7.8.4",
+    "@babel/core": "^7.8.7",
+    "@babel/preset-env": "^7.8.7"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src -d dist",
+    "start": "npm run build && node dist/index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
