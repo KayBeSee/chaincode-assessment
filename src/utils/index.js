@@ -22,7 +22,7 @@ const convertMempoolArraysToMempoolObjects = (mempoolRows) => {
       txId: mempoolRow[0],
       fee: mempoolRow[1],
       weight: mempoolRow[2],
-      parentTxs: mempoolRow[3] // KBC-TODO: these will need to be parsed when tackling parentTx iteration
+      parentTxs: mempoolRow[3] ? mempoolRow[3].split(";") : []
     }
   })
 }
@@ -35,4 +35,20 @@ export const readAndSortCsv = async (filePath) => {
   const mempoolCsv = await readCSV(filePath);
   const mempoolAsObjects = convertMempoolArraysToMempoolObjects(mempoolCsv);
   return sortMempoolObjects(mempoolAsObjects);
+}
+
+export const writeToTxt = async (block, fileName) => {
+  let file = fs.createWriteStream(fileName);
+
+  block.forEach((block) => file.write(block + '\n'))
+  file.end();
+}
+
+export const allParentTxsAreInBlock = (parentTxs, block) => {
+  for (let i = 0; i < parentTxs.length; i++) {
+    if (!block.includes(parentTxs[i])) {
+      return false;
+    }
+  }
+  return true;
 }

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.readAndSortCsv = void 0;
+exports.writeToTxt = exports.readAndSortCsv = void 0;
 
 var _fs = _interopRequireDefault(require("fs"));
 
@@ -43,8 +43,7 @@ var convertMempoolArraysToMempoolObjects = mempoolRows => {
       txId: mempoolRow[0],
       fee: mempoolRow[1],
       weight: mempoolRow[2],
-      parentTxs: mempoolRow[3] // KBC-TODO: these will need to be parsed when tackling parent
-
+      parentTxs: mempoolRow[3] ? mempoolRow[3].split(";") : []
     };
   });
 };
@@ -66,3 +65,18 @@ var readAndSortCsv = /*#__PURE__*/function () {
 }();
 
 exports.readAndSortCsv = readAndSortCsv;
+
+var writeToTxt = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator(function* (block, fileName) {
+    var file = _fs.default.createWriteStream(fileName);
+
+    block.forEach(block => file.write(block + '\n'));
+    file.end();
+  });
+
+  return function writeToTxt(_x3, _x4) {
+    return _ref3.apply(this, arguments);
+  };
+}();
+
+exports.writeToTxt = writeToTxt;

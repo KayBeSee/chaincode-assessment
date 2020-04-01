@@ -10,35 +10,50 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 var start = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator(function* () {
-    var sortedMempool = yield (0, _utils.readAndSortCsv)('/Users/kevinmulcrone/repos/chaincode-assessment/dist/mempool.csv'); // console.log('sortedMempool: ', sortedMempool);
-    // console.log('sortedMempool[0]: ', sortedMempool[0].txId);
-    // console.log('sortedMempool[100].txId: ', sortedMempool[100].txId);
-    // console.log('sortedMempool[200].txId: ', sortedMempool[200].txId);
-    // console.log('sortedMempool[300].txId: ', sortedMempool[300].txId);
-    // console.log('sortedMempool[400].txId: ', sortedMempool[400].txId);
-
+    var sortedMempool = yield (0, _utils.readAndSortCsv)('/Users/kevinmulcrone/repos/chaincode-assessment/dist/mempool.csv');
     var block = buildBlockFromMempool(sortedMempool);
-    console.log('block: ', block);
+    (0, _utils.writeToTxt)(block, 'block.txt');
   });
 
   return function start() {
     return _ref.apply(this, arguments);
   };
-}();
+}(); // Basic sorting pattern.
+// Since the mempool is sorted by fee and then weight, we take all the transactions with the highest fees and put them
+// into an array
+
 
 var buildBlockFromMempool = sortedMempool => {
   var MAX_BLOCK_SIZE = 4000000;
   var currentBlockTxIds = [];
   var index = 0;
   var currentBlockSize = 0;
+  var txsWithParentsNotInBlock = []; // array of high fee tx who's parents weren't in block when attempted to add
 
-  while (currentBlockSize < MAX_BLOCK_SIZE && index < sortedMempool.length - 1) {
-    console.log("processing ".concat(JSON.stringify(sortedMempool[index]), "..."));
+  while (currentBlockSize < MAX_BLOCK_SIZE && index < sortedMempool.length) {
+    // loop through txsWithParentsNotInBlock to see if we can add any txs we passed over since they have higher fees than the current tx we are examining
+    var txWParentsIndex = 0;
+
+    while (currentBlockSize < MAX_BLOCK_SIZE && txWParentsIndex < txsWithParentsNotInBlock.length) {
+      if (allParentTxsAreInBlock(txsWithParentsNotInBlock[txWParentsIndex].parentTxs, currentBlockTxIds)) {
+        currentBlockSize += txsWithParentsNotInBlock[txWParentsIndex].weight;
+        currentBlockTxIds.push(txsWithParentsNotInBlock[txWParentsIndex].txId); // remove from txsWithParentsNotInBlock array since we added it to block array
+
+        txsWithParentsNotInBlock.splice(txWParentsIndex, 1);
+      }
+
+      txWParentsIndex++;
+    }
 
     if (sortedMempool[index].weight + currentBlockSize < MAX_BLOCK_SIZE) {
-      console.log('hits if');
-      currentBlockSize += sortedMempool[index].weight;
-      currentBlockTxIds.push(sortedMempool[index].txId);
+      if (allParentTxsAreInBlock(sortedMempool[index].parentTxs, currentBlockTxIds)) {
+        currentBlockSize += sortedMempool[index].weight;
+        currentBlockTxIds.push(sortedMempool[index].txId);
+      } else {
+        // these transactions parents aren't in the block yet, but they have a high fee,
+        // so let's save them to look at again later and see if their parent got added to the block
+        txsWithParentsNotInBlock.push(sortedMempool[index]);
+      }
     }
 
     index++;
@@ -46,6 +61,16 @@ var buildBlockFromMempool = sortedMempool => {
 
   console.log('currentBlockSize: ', currentBlockSize);
   return currentBlockTxIds;
+};
+
+var allParentTxsAreInBlock = (parentTxs, block) => {
+  for (var i = 0; i < parentTxs.length; i++) {
+    if (!block.includes(parentTxs[i])) {
+      return false;
+    }
+  }
+
+  return true;
 };
 
 start();
