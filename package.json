@@ -4,7 +4,7 @@
   "description": "Thank you for applying to Chaincode and congratulations for making it to our coding challenge.",
   "main": "index.js",
   "dependencies": {
-    "papaparse": "^5.1.1",
+    "papaparse": "^5.2.0",
     "regenerator-runtime": "^0.13.3"
   },
   "devDependencies": {
